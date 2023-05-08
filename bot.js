@@ -6,6 +6,7 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.MESSAG
 
 const OPENAI_API_BASE_URL = "https://api.openai.com/v1/chat/completions"; // Update this line
 const OPENAI_API_KEY= process.env.OPENAI_GPT3_5_API
+const messageLimit = 50;
 
 
 client.on('ready', () => {
@@ -15,9 +16,9 @@ client.on('ready', () => {
 client.on('messageCreate', async (message) => {
   if (message.content === '!aisummarize20' && !message.author.bot) {
     try {
-      const messages = await message.channel.messages.fetch({ limit: 20 });
+      const messages = await message.channel.messages.fetch({ limit: messageLimit });
       const messageContentArray = messages.map((msg) => `${msg.author.username}: ${msg.content}`);
-      const messageContent = messageContentArray.join('\n');
+      const messageContent = messageContentArray.reverse().join('\n');
       const summary = await fetchSummary(messageContent);
       await summary;
       console.log("this is the summary", summary)
@@ -42,8 +43,8 @@ async function fetchSummary(text) {
     {
         "model": "gpt-3.5-turbo",
         "messages": [
-          {"role": "system", "content": "Your goal is to provide summaries and insights for users of Giveth to quickly catch up on a conversation in a specific discord channel."},
-          {"role": "user", "content": `Please summarize the following conversation:\n${text}`}
+          {"role": "system", "content": `Your goal is to summarize the last ${messageLimit} messages in a specific discord channel. Do not include in your summary any messages that are bot commands or from bots, including MEE6.`},
+          {"role": "user", "content": `Please summarize, with some detail, the following conversation:\n${text}`}
         ],
       }
     
